@@ -29,12 +29,12 @@
           <div class="relative rounded-3xl w-full gap-2 text-center" :style='"background-image: url(" + anime.image + "); background-size: cover; aspect-ratio: 3/4;"'>
 
             <div class="flex gap-2 absolute bottom-2 right-4 text-white font-semibold">
-            <div class="flex gap-2 p-2 bg-[#bb2a47] h-6 rounded-lg items-center">
+            <div class="flex gap-2 p-2 bg-[#e91842] h-6 rounded-lg items-center">
               <img class="h-5 w-5 rounded-full invert" src="/svg/cc.svg" />
               <p>{{ anime.sub }}</p>
             </div>
 
-            <div class="flex gap-2 p-2 bg-[#164596] h-6 rounded-md items-center">
+            <div class="flex gap-2 p-2 bg-[#2575ff] h-6 rounded-md items-center">
               <img class="h-5 w-5 rounded-full invert" src="/svg/dub.svg" />
               <p>{{ anime.dub }}</p>
             </div>
@@ -58,8 +58,8 @@ import { onMounted, ref } from 'vue';
 import AppHeader from '../components/AppHeader.vue';
 import AppFooter from '../components/AppFooter.vue';
 
-import { ANIME } from '@consumet/extensions';
-import { IAnimeResult } from '@consumet/extensions';
+import { ANIME } from '@pranavpurwar/consumet';
+import type { IAnimeResult } from '@pranavpurwar/consumet'
 
 const zoro = new ANIME.Zoro();
 
