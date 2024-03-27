@@ -31,6 +31,8 @@ async function updateData() {
     });
 }
 
-await updateData();
+updateData().then(() => {
+    console.log("Data updated");
+});
 
 export { provider, topAiring, popular, topUpcoming, recentlyAdded, recentlyUpdated };
