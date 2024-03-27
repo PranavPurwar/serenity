@@ -16,6 +16,18 @@ export default defineNuxtConfig({
   experimental: {
     viewTransition: true,
   },
+  nitro: {
+    esbuild: {
+      options: {
+        target: "esnext"
+      }
+    }
+  },
+  routeRules: {
+    '/watch/:id': {
+      ssr: false
+    }
+  },
 
   modules: ["@nuxtjs/tailwindcss"],
 });

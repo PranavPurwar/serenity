@@ -1,6 +1,6 @@
 <template>
 
-    <div class="flex flex-col gap-4 bg-[#04040451] rounded-3xl p-4 w-[280px] h-[50vh] hover:cursor-pointer" @click="onClick">
+    <div class="flex flex-col gap-4 bg-[#04040451] rounded-3xl p-6 w-[280px] h-[50vh] hover:cursor-pointer" @click="onClick">
         <div class="relative rounded-2xl w-full gap-2 text-center"
             :style='"background-image: url(" + anime.image + "); background-size: cover; aspect-ratio: 3/4;"'>
 
@@ -31,7 +31,6 @@
 <script setup lang="ts">
 
 import type { IAnimeResult } from '@pranavpurwar/consumet';
-import { useRouter } from 'vue-router';
 
 interface Props {
     anime: IAnimeResult
@@ -42,7 +41,7 @@ const props = defineProps<Props>()
 const router = useRouter()
 
 function onClick() {
-    router.push(`/anime/${props.anime.id}`);
+    router.push(`/${props.anime.id}`);
 }
 
 </script>

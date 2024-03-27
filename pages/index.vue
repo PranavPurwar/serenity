@@ -1,10 +1,10 @@
 <template>
   <div class="flex flex-col bg-gradient-to-b from-gray-800 to-[#040404] w-[100vw] min-h-[100vh] items-center">
     <AppHeader />
-    <div class="flex rounded-bl-[60px] rounded-tr-[60px] w-[60vw]" alt="anime"
+    <div class="rounded-tr-[60px] rounded-bl-[60px] w-[60vw]"
       style="aspect-ratio: 16 / 9; background-image: url('/png/bg.png'); background-size: cover;">
       <div
-        class="flex flex-col gap-4 w-full h-full p-12 bg-gradient-to-r from-[#0404049e] to-transparent justify-between">
+        class="flex flex-col gap-4 w-full h-full p-12 bg-gradient-to-r from-[#0404049e] to-transparent justify-between rounded-tr-[60px] rounded-bl-[60px]">
         <h1 class="text-4xl md:text-5xl font-bold text-white font-sans subpixel-antialiased">Serenity</h1>
 
         <div class="flex gap-4">
@@ -13,9 +13,9 @@
           <img src="/svg/search.svg" alt="Search" class="h-14 w-14 p-3 bg-[#ffb7c5] rounded-2xl" />
         </div>
 
-        <div class="flex gap-4 bg-[#ffb7c5] rounded-3xl p-4 pr-8 pl-8 font-semibold text-2xl items-center w-fit">
+        <div class="flex gap-4 bg-[#ff5073] text-gray-50 rounded-3xl p-4 pr-8 pl-8 font-semibold text-2xl items-center w-fit hover:cursor-pointer" @click="gotoPopular">
           Watch the latest anime episodes and movies for free
-          <img class="h-12 w-12 rounded-full" src="/svg/next.svg" />
+          <img class="h-12 w-12 rounded-full invert" src="/svg/next.svg" />
         </div>
 
       </div>
@@ -38,5 +38,11 @@ import AppFooter from '../components/AppFooter.vue';
 import Anime from '~/components/Anime.vue';
 
 import { popular } from '../server/provider'
+
+function gotoPopular() {
+    const router = useRouter();
+
+    router.push('/popular');
+}
 
 </script>
