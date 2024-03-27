@@ -26,8 +26,8 @@ const MORE = [
 ];
 
 const HEADERS = [
-  { title: "Home", link: "/home" },
-  { title: "Recently Added", link: "/recent" },
+  { title: "Home", link: "/" },
+  { title: "Recently Added", link: "/recents" },
   { title: "Most Popular", link: "/popular" },
   { title: "Top Airing", link: "airing" },
   { title: "Upcoming", link: "upcoming" },
