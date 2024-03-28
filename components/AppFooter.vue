@@ -24,7 +24,7 @@
       
     <script setup lang="ts">
     
-    import { SWPRO, COMMUNITY, MORE, HEADERS } from './data'
+    import { HEADERS } from './data'
     import { Separator } from '@/components/ui/separator'
     
     

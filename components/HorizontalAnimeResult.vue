@@ -5,11 +5,18 @@
       <p class="line-clamp-2 text-lg font-semibold">{{ anime.name }}</p>
 
       <div v-if="anime.episodes" class="flex gap-1 text-center text-gray-50">
-        <div class="flex bg-[#ff5073] rounded-s-md gap-1 ps-1 pe-1 h-6 items-center">
+
+        <div v-if="anime.episodes.dub" class="flex bg-[#ff5073] rounded-s-md gap-1 ps-1 pe-1 h-6 items-center">
           <img class="h-5 invert" src="/svg/cc.svg" alt="Sub" />
           <p class="text-sm font-semibold">{{ anime.episodes.sub }}</p>
         </div>
-        <div class="flex bg-[#488bff] rounded-e-md gap-1 ps-1 pe-2 h-6 items-center">
+
+        <div v-else class="flex bg-[#488bff] rounded-md gap-1 ps-1 pe-1 h-6 items-center">
+          <img class="h-5 invert" src="/svg/cc.svg" alt="Sub" />
+          <p class="text-sm font-semibold">{{ anime.episodes.sub }}</p>
+          </div>
+
+        <div v-if="anime.episodes.dub" class="flex bg-[#488bff] rounded-e-md gap-1 ps-1 pe-2 h-6 items-center">
           <img class="h-5 invert" src="/svg/dub.svg" alt="Sub" />
           <p class="text-sm font-semibold">{{ anime.episodes.dub }}</p>
         </div>

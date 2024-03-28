@@ -6,7 +6,6 @@
       <AppHeader :isScrollable='true' />
 
       <div class="flex gap-4 h-fit">
-
         <div class="flex flex-col gap-16 px-16 w-[80vw]">
           <h1 class="text-3xl font-bold text-[#ff8da3]">{{ info?.anime.info.name || info?.anime.moreInfo.japanese }}
           </h1>
@@ -15,9 +14,41 @@
             <video id="player" class="w-full h-fit rounded-2xl" controls playsinline crossorigin="anonymous">
               <source :src="source" type="application/x-mpegURL">
 
-              <track kind="subtitles" v-for="subtitle in tracks" :key="subtitle.lang" :src="subtitle.file"
-                :srclang="subtitle.label" :label="subtitle.label" :default="subtitle.default">
+              <track kind="subtitles" v-for="subtitle in tracks" :src="subtitle.file" :srclang="subtitle.label"
+                :label="subtitle.label" :default="subtitle.default">
             </video>
+          </div>
+
+          <div class="flex gap-8 items-center rounded-s-xl bg-gray-800">
+            <div class="flex flex-col gap-4 bg-[#ffb7c5] p-8 rounded-s-xl w-1/3">
+              <p class="text-gray-900 font-semibold tracking-wide text-xl">You are watching <span
+                  class="font-bold">episode {{ episode?.number }}.</span></p>
+              <p class="text-gray-900 font-medium text-lg antialiased">If the current server doesn't work, try switching
+                to some other server.</p>
+            </div>
+            <div class="flex flex-col text-gray-200 gap-4">
+              <div class="flex gap-2 text-center items-center">
+                <img src="/svg/cc.svg" class="h-6 w-6 invert" alt="Subtitles" />
+                <p class="font-semibold me-4">SUB:</p>
+                <div class="flex gap-4">
+                  <p class="bg-[#ffb7c5] text-gray-900 p-2 rounded-lg hover:cursor-pointer font-semibold"
+                    v-for="server in servers?.sub" :id="server.serverName" @click="changeServer(server.serverName, 'sub')">{{ server.serverName.toUpperCase() }}</p>
+                </div>
+
+
+              </div>
+              <div v-if="servers?.dub" class="flex gap-2 text-center items-center">
+                <img src="/svg/dub.svg" class="h-6 w-6 invert" alt="Subtitles" />
+                <p class="font-semibold me-4">DUB:</p>
+                <div class="flex gap-4">
+                  <p class="bg-[#ffb7c5] text-gray-900 p-2 rounded-lg hover:cursor-pointer font-semibold"
+                    v-for="server in servers?.dub" :id="server.serverName" @click="changeServer(server.serverName, 'dub')">{{ server.serverName.toUpperCase() }}</p>
+                </div>
+              </div>
+
+            </div>
+
+
           </div>
 
           <div class="flex flex-col gap-2 rounded-2xl p-4 h-[40vh] overflow-auto">
@@ -30,7 +61,7 @@
 
           <p class="text-3xl font-bold text-[#ff8da3]">Recommendations</p>
 
-          <div class="grid grid-cols-4 gap-8 w-[3/4]">
+          <div class="grid lg:grid-cols-3 xl:grid-cols-4 gap-8">
             <Anime v-for="anime in info?.recommendedAnimes" :key="anime.id" :anime="anime" />
           </div>
         </div>
@@ -44,46 +75,68 @@
 <script setup lang="ts">
 
 import { useRoute } from 'vue-router';
-import { getAnimeDetails, getEpisodes, watchEpisode } from '../../server/provider';
+import { getAnimeDetails, getServers, getStream, getEpisodes } from '../../server/provider';
 import { ref } from 'vue';
 import AppHeader from '../../components/AppHeader.vue';
 import AppFooter from '../../components/AppFooter.vue';
-import type { Info, Episode } from '../../server/types';
+import type { Info, Episode, Servers, Stream } from '../../server/types';
 import Hls from 'hls.js';
 
 const route = useRoute();
 
 const id = ref(route.params.id)
 const episodeId = route.query.episodeId as string | undefined;
+const server = route.query.server as string | undefined;
+const category = route.query.category as string | undefined;
+
+console.log('episodeId' + episodeId);
 
 const info = ref<Info | null>(null);
 const episode = ref<Episode>();
 const source = ref<string>()
 const episodes = ref<Episode[]>();
-const stream = ref<object | null>();
+const stream = ref<Stream>();
 const tracks = ref<object | null>();
+const servers = ref<Servers>();
 
 const hls = new Hls();
-
 
 onMounted(async () => {
   info.value = await getAnimeDetails(id.value)
 
   episodes.value = await getEpisodes(id.value);
 
-  if (episodeId.value) {
-    episode.value = episodes.value.find((e) => e.episodeId === episodeId.value);
+  if (episodeId) {
+    episode.value = episodes.value.find((e) => e.episodeId === episodeId);
   } else {
-  episode.value = episodes.value[0];
+    episode.value = episodes.value[0];
   }
 
-  stream.value = await watchEpisode(episode.value.episodeId);
+  servers.value = await getServers(episode.value!.episodeId!);
 
-  source.value = stream.value.sources.at(0).url;
+  try {
+  if (server) {
+    if (category) {
+      stream.value = await getStream(episode.value!.episodeId, category, server);
+    } else {
+      stream.value = await getStream(episode.value!.episodeId, 'sub', server);
+    }
+  } else {
+    if (category) {
+      stream.value = await getStream(episode.value!.episodeId, category);
+    } else {
+      stream.value = await getStream(episode.value!.episodeId);
+    }
+  }
+} catch (e) {
+  alert('This episode is not available on this server. Please try another server.');
+}
+
+  source.value = stream.value!.sources.at(0)?.url
 
   const video = document.querySelector("video");
 
-  console.log('isource' + source.value);
+  console.log('source ' + source.value);
 
   if (Hls.isSupported()) {
     hls.attachMedia(video);
@@ -101,27 +154,21 @@ onMounted(async () => {
   } else {
     alert('Your browser does not support HLS');
   }
-  
 });
 
 function playEpisode(episodeId: string) {
-  watchEpisode(episodeId).then((data) => {
-    useRouter().push('/watch/' + id.value + '?episodeId=' + episodeId);
-    useRouter().go(0);
-  });
-};
+    window.location.href = `/watch/${id.value}?episodeId=${episodeId}`;
+}
 
+function changeServer(serverName: string, category: string) {
+  console.log(serverName);
+  if (serverName.startsWith('hd')) {
+    window.location.href = `/watch/${id.value}?episodeId=${episode.value!.episodeId}&category=${category}`;
+  } else {
+    window.location.href = `/watch/${id.value}?episodeId=${episode.value!.episodeId}&server=${serverName}&category=${category}`;
+  }
+}
 
 </script>
 
-<style scoped>
-
-::cue {
-  background-color: rgba(0, 0, 0, 0.5); /* Black background with 50% opacity */
-  padding: 5px; /* Add some padding around the text */
-  border-radius: 3px; /* Add rounded corners for a smoother look */
-  color:#ffc800;
-  width: fit-content;
-}
-
-</style>
+<style scoped></style>

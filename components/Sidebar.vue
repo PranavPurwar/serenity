@@ -1,6 +1,6 @@
 <template>
 
-    <div class="flex flex-col gap-16 p-4 rounded-2xl absolute end-4">
+    <div class="flex flex-col md:gap-8 xl:gap-16 xl:p-4 rounded-2xl absolute end-4">
 
         <h1 class="text-3xl font-bold text-[#ff8da3] px-16">{{ title }}</h1>
 
