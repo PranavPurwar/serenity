@@ -8,21 +8,21 @@
       <div class="flex gap-4 h-fit">
 
         <div class="flex flex-col gap-16 px-16 w-[80vw]">
-          <h1 class="text-3xl font-bold text-[#ff8da3]">{{ info?.title || info?.japaneseTitle }}</h1>
+          <h1 class="text-3xl font-bold text-[#ff8da3]">{{ info?.anime.info.name || info?.anime.moreInfo.japanese }}
+          </h1>
 
           <div id="container">
-            <video id="player" class="w-[80vw] rounded-2xl" controls playsinline>
-              <source v-for="source in isource?.sources" :src="source.url" type="application/x-mpegURL" />
+            <video id="player" class="w-full h-fit rounded-2xl" controls playsinline crossorigin="anonymous">
+              <source :src="source" type="application/x-mpegURL">
 
-              <!-- Caption files -->
-              <track v-for="caption in isource?.subtitles" kind="captions" :label="caption.lang" :src="caption.url"
-                default />
+              <track kind="subtitles" v-for="subtitle in tracks" :key="subtitle.lang" :src="subtitle.file"
+                :srclang="subtitle.label" :label="subtitle.label" :default="subtitle.default">
             </video>
           </div>
 
           <div class="flex flex-col gap-2 rounded-2xl p-4 h-[40vh] overflow-auto">
-            <div class="flex gap-4 bg-gray-800 p-4 hover:cursor-pointer" v-for="episode in info?.episodes"
-              :id="episode.id" @click="playEpisode(episode.id)">
+            <div class="flex gap-4 bg-gray-800 p-4 hover:cursor-pointer" v-for="episode in episodes"
+              :id="episode.episodeId" @click="playEpisode(episode.episodeId)">
               <p class="text-gray-200 font-semibold">{{ episode.number }}</p>
               <p class="text-gray-200">{{ episode.title }}</p>
             </div>
@@ -31,10 +31,10 @@
           <p class="text-3xl font-bold text-[#ff8da3]">Recommendations</p>
 
           <div class="grid grid-cols-4 gap-8 w-[3/4]">
-            <Anime v-for="anime in info?.recommendations" :key="anime.id" :anime="anime" />
+            <Anime v-for="anime in info?.recommendedAnimes" :key="anime.id" :anime="anime" />
           </div>
         </div>
-        <Sidebar title="Related" :animes="info?.relatedAnime" />
+        <Sidebar title="Related" :animes="info?.relatedAnimes" />
       </div>
       <AppFooter />
     </div>
@@ -44,119 +44,71 @@
 <script setup lang="ts">
 
 import { useRoute } from 'vue-router';
-import { getAnimeDetails, watchEpisode } from '../../server/provider';
-import type { ISource, IAnimeInfo } from '@consumet/extensions';
+import { getAnimeDetails, getEpisodes, watchEpisode } from '../../server/provider';
 import { ref } from 'vue';
 import AppHeader from '../../components/AppHeader.vue';
 import AppFooter from '../../components/AppFooter.vue';
+import type { Info, Episode } from '../../server/types';
 import Hls from 'hls.js';
 
 const route = useRoute();
 
-const id = route.params.id as string;
-const episodeId = route.query.id;
+const id = ref(route.params.id)
+const episodeId = route.query.episodeId as string | undefined;
 
-const info = ref<IAnimeInfo>();
+const info = ref<Info | null>(null);
+const episode = ref<Episode>();
+const source = ref<string>()
+const episodes = ref<Episode[]>();
+const stream = ref<object | null>();
+const tracks = ref<object | null>();
 
-const isource = ref<ISource>();
 const hls = new Hls();
 
 
 onMounted(async () => {
-  info.value = await getAnimeDetails(id);
+  info.value = await getAnimeDetails(id.value)
 
-  if (episodeId) {
-    isource.value = await watchEpisode(episodeId as string);
+  episodes.value = await getEpisodes(id.value);
+
+  if (episodeId.value) {
+    episode.value = episodes.value.find((e) => e.episodeId === episodeId.value);
   } else {
-    isource.value = await watchEpisode(info.value!.episodes!.at(0)?.id);
+  episode.value = episodes.value[0];
   }
+
+  stream.value = await watchEpisode(episode.value.episodeId);
+
+  source.value = stream.value.sources.at(0).url;
 
   const video = document.querySelector("video");
 
-	const defaultOptions = {};
-
-  console.log('isource' + isource.value?.sources.at(0)?.url);
+  console.log('isource' + source.value);
 
   if (Hls.isSupported()) {
-    hls.loadSource(isource.value?.sources.at(0)?.url);
-
-    hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
-      const availableQualities = hls.levels.map((l) => l.height);
-      availableQualities.unshift(0); //prepend 0 to quality array
-
-      // Add new qualities to option
-      defaultOptions.quality = {
-        default: 0, //Default - AUTO
-        options: availableQualities,
-        forced: true,
-        onChange: (e) => updateQuality(e)
-      };
-      // Add Auto Label
-      defaultOptions.i18n = {
-        qualityLabel: {
-          0: "Auto"
-        }
-      };
-
-
-      hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
-        var span = document.querySelector(
-          ".plyr__menu__container [data-plyr='quality'][value='0'] span"
-        );
-        if (hls.autoLevelEnabled) {
-          span.innerHTML = `AUTO (${hls.levels[data.level].height}p)`;
-        } else {
-          span.innerHTML = `AUTO`;
-        }
-
-      });
-    });
-
-
     hls.attachMedia(video);
+
+    hls.loadSource(source.value);
+
     window.hls = hls;
 
+    hls.config.enableWebVTT = true
+
+    tracks.value = stream.value!.tracks;
+
   } else if (document.getElementById('player').canPlayType('application/vnd.apple.mpegurl')) {
-    document.getElementById('player').src = isource.value?.sources.at(0)?.url;
+    document.getElementById('player').src = source.value;
   } else {
-    video.src = source;
+    alert('Your browser does not support HLS');
   }
+  
 });
-
-
-function updateQuality(newQuality) {
-  if (newQuality === 0) {
-    window.hls.currentLevel = -1; //Enable AUTO quality if option.value = 0
-  } else {
-    window.hls.levels.forEach((level, levelIndex) => {
-      if (level.height === newQuality) {
-        console.log("Found quality match with " + newQuality);
-        window.hls.currentLevel = levelIndex;
-      }
-    });
-  }
-}
 
 function playEpisode(episodeId: string) {
   watchEpisode(episodeId).then((data) => {
-    useRouter().push('/watch/' + id + '?id=' + episodeId);
+    useRouter().push('/watch/' + id.value + '?episodeId=' + episodeId);
     useRouter().go(0);
-    /*
-    if (Hls.isSupported()) {
-    hls.loadSource(isource.value?.sources.at(0)?.url);
-    hls.attachMedia(document.getElementById('player'));
-    hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
-      console.log('manifest loaded, found ' + data.levels.length + ' quality level');
-    });
-  } else if (document.getElementById('player').canPlayType('application/vnd.apple.mpegurl')) {
-    document.getElementById('player').src = isource.value?.sources.at(0)?.url;
-  } else {
-    alert("Your device doesn't support streaming.")
-  }
-
-  document.querySelector('video')!.play();
-  */
-  })
+  });
 };
 
 
@@ -164,14 +116,12 @@ function playEpisode(episodeId: string) {
 
 <style scoped>
 
-use {
-  width: 10px;
-  height: 10px;
-}
-
-.icon--pressed {
-  width: 10px;
-  height: 10px;
+::cue {
+  background-color: rgba(0, 0, 0, 0.5); /* Black background with 50% opacity */
+  padding: 5px; /* Add some padding around the text */
+  border-radius: 3px; /* Add rounded corners for a smoother look */
+  color:#ffc800;
+  width: fit-content;
 }
 
 </style>

@@ -1,66 +1,66 @@
-var topAiring: IAnimeResult[]
-var popular: IAnimeResult[]
-var mostFavorited: IAnimeResult[]
-var latestCompleted: IAnimeResult[]
-var recentlyUpdated: IAnimeResult[]
-var topUpcoming: IAnimeResult[]
-var recentlyAdded: IAnimeResult[]
+import { Anime, Episode, Home, Info, LatestEpisodes, Spotlight, Top10Animes, TopAiring, TopUpcoming, Trending, } from './types';
 
-const domain = 'https://api-serenity.vercel.app'
+var home: Home
 
-const provider = '/anime/zoro/'
+var spotlight: Spotlight[]
+var topAiring: TopAiring[]
+var popular: Anime[]
+var trending: Trending[]
+var latestEpisodes: LatestEpisodes[]
+var topUpcoming: TopUpcoming[]
+var genres: string[]
+var top10: Top10Animes[]
+
+const domain = 'https://hianime-api.vercel.app/anime/'
+
 
 const tmdb = domain + '/meta/tmdb/'
 
-const base = domain + provider
-
 async function updateData() {
-    await $fetch(base + 'top-airing').then((data) => {
-        topAiring = data.results;
+    await $fetch(domain + 'home').then((data) => {
+        home = data;
+        topAiring = home.topAiringAnimes
+        topUpcoming = home.topUpcomingAnimes
+        spotlight = home.spotlightAnimes
+        popular = home.trendingAnimes
+        latestEpisodes = home.latestEpisodeAnimes
+        top10 = home.top10Animes
+        genres = home.genres
     });
 
-    await $fetch(base + 'most-popular').then((data) => {
-        popular = data.results;
-    });
-
-    await $fetch(base + 'most-favorite').then((data) => {
-        mostFavorited = data.results;
-    });
-
-    await $fetch(base + 'latest-completed').then((data) => {
-        latestCompleted = data.results;
-    });
-
-    await $fetch(base + 'recent-episodes').then((data) => {
-        recentlyUpdated = data.results;
-    });
-
-    await $fetch(base + 'recent-added').then((data) => {
-        recentlyAdded = data.results;
-    });
-
-    await $fetch(base + 'top-upcoming').then((data) => {
-        topUpcoming = data.results;
+    await $fetch(domain + 'most-popular').then((data) => {
+        popular = data.animes;
     });
 }
 
-async function getAnimeDetails(id: string) {
-    return await $fetch(base + 'info?id=' + id);
+async function getAnimeDetails(id: string): Promise<Info> {
+    return await $fetch(domain + 'info?id=' + id);
+}
+
+async function getEpisodes(id: string): Promise<Episode[]> {
+    return (await $fetch(domain + 'episodes/' + id)).episodes;
 }
 
 async function watchEpisode(id: string) {
-    return await $fetch(base + 'watch?episodeId=' + id);
+    return await $fetch(domain + 'episode-srcs?id=' + id);
 }
 
 async function searchAnime(query: string) {
-    return (await $fetch(tmdb + encodeURIComponent(query))).results;
+    return (await $fetch(domain + 'search?q=' + encodeURIComponent(query))).animes;
+}
+
+async function searchSuggestions(query: string) {
+    return (await $fetch(domain + 'search/suggest?q=' + encodeURIComponent(query))).suggestions;
 }
 
 async function getTmdbDetails(id: string) {
     return await $fetch(tmdb + 'info/' + id + '?type=tv');
 }
 
+async function getAnimeByGenre(genre: string) {
+    return await $fetch(domain + 'genre/' + genre);
+}
 
 await updateData();
 
-export { base, topAiring, popular, mostFavorited, latestCompleted, recentlyUpdated, recentlyAdded, topUpcoming, getAnimeDetails, watchEpisode, searchAnime, getTmdbDetails };
+export { domain, home, spotlight, topAiring, popular, latestEpisodes, topUpcoming, genres, top10, getAnimeDetails, watchEpisode, searchAnime, getTmdbDetails, getEpisodes };

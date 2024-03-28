@@ -13,12 +13,11 @@
 
 <script setup lang="ts">
 
-import type { IAnimeResult } from '@consumet/extensions';
 import { topAiring } from '~/server/provider';
 
 interface Props {
     title: string,
-    animes: IAnimeResult[]
+    animes: []
 }
 
 withDefaults(defineProps<Props>(), {

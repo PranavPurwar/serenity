@@ -4,28 +4,28 @@
 
         <div class="flex flex-col gap-16 px-16 py-8">
             <div class="flex gap-8 w-3/4">
-                <img :src="info?.image" class="rounded-3xl w-[200px] h-fit" />
+                <img :src="info?.anime.info.poster" class="rounded-3xl w-[200px] h-fit" />
                 <div class="flex flex-col gap-4 text-gray-50">
-                    <h1 class="text-3xl font-bold">{{ info?.title || info?.japaneseTitle }}</h1>
+                    <h1 class="text-3xl font-bold">{{ info?.anime.info.name || info?.anime.moreInfo.japanese }}</h1>
                     <div class="flex gap-4 items-center">
-                        <p>{{ info?.type }}</p>
-                        <p v-for="genre in info?.genres" class="py-1 px-2 border border-gray-400 rounded-full">{{ genre }}</p>
+                        <p>{{ info?.anime.info.stats.type }}</p>
+                        <p v-for="genre in info?.anime.moreInfo.genres" class="py-1 px-2 border border-gray-400 rounded-full">{{ genre }}</p>
                     </div>
-                    <p><span class="strong font-semibold">{{ info?.totalEpisodes }}</span> episodes</p>
-                    <p class="antialiased">{{ info?.description }}</p>
+                    <p><span class="strong font-semibold">{{ info?.anime.info.stats.episodes.sub }}</span> episodes</p>
+                    <p class="antialiased">{{ info?.anime.info.description }}</p>
 
-                    <a class="flex gap-4 items-center text-center bg-[#ff5073] rounded-full p-4 pr-8 pl-8 font-semibold text-2xl w-fit" :href="'/watch/' + info?.id">
+                    <a class="flex gap-4 items-center text-center bg-[#ff5073] rounded-full p-4 pr-8 pl-8 font-semibold text-2xl w-fit" :href="'/watch/' + id">
                         Watch
                         <img class="h-6 w-6 rounded-full invert" src="/svg/play.svg" />
                     </a>
                 </div>
-                <Sidebar title="Related" :animes="info?.relatedAnime || info?.similar" />
+                <Sidebar title="Related" :animes="info?.relatedAnimes" />
 
             </div>
             <p class="text-3xl font-bold text-[#ff8da3]">Recommendations</p>
 
             <div class="grid grid-cols-4 gap-8 w-[70vw]">
-                <Anime v-for="anime in info?.recommendations" :key="anime.id" :anime="anime" />
+                <Anime v-for="anime in info?.recommendedAnimes" :key="anime.id" :anime="anime" />
             </div>
 
         </div>
@@ -37,35 +37,20 @@
 
 <script setup lang="ts">
 
-import { useRoute } from 'vue-router';
-import type { IAnimeInfo } from '@consumet/extensions';
-import { ref } from 'vue';
-import AppHeader from '../components/AppHeader.vue';
-import AppFooter from '../components/AppFooter.vue';
-import Sidebar from '../components/Sidebar.vue';
-import Anime from '../components/Anime.vue';
-import { getAnimeDetails, getTmdbDetails } from '~/server/provider'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import type { Info } from '~/server/types'
+import { getAnimeDetails } from '~/server/provider';
 
-const route = useRoute();
+const router = useRoute()
 
-const id = route.params.id as string;
+const id = ref(router.params.id)
 
-const info = ref<IAnimeInfo | null>(null);
+const info = ref<Info | null>(null)
 
 onMounted(async () => {
-    if (Number.isNaN(id)) {
-    await getAnimeDetails(id).then((data) => {
-        info.value = data;
-
-        console.log(data);
-    })
-} else {
-await getTmdbDetails(id).then((data) => {
-    info.value = data;
-
-    console.log(data);
+    info.value = await getAnimeDetails(id.value)
 })
-}
-})
+
 
 </script>
