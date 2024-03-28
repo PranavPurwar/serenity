@@ -3,15 +3,15 @@
   <body>
     <div class="w-[100vw] min-h-[100vh] bg-gradient-to-b from-gray-800 to-[#040404]">
 
-      <AppHeader />
+      <AppHeader :isScrollable='true' />
 
       <div class="flex gap-4 h-fit">
 
-        <div class="flex flex-col gap-16 p-16 w-[80vw]">
+        <div class="flex flex-col gap-16 px-16 w-[80vw]">
           <h1 class="text-3xl font-bold text-[#ff8da3]">{{ info?.title || info?.japaneseTitle }}</h1>
 
           <div id="container">
-            <video id="player" class="w-[80vw] h-fit rounded-2xl" controls playsinline :poster="info?.image">
+            <video id="player" class="w-[80vw] rounded-2xl" controls playsinline>
               <source v-for="source in isource?.sources" :src="source.url" type="application/x-mpegURL" />
 
               <!-- Caption files -->
@@ -30,9 +30,9 @@
 
           <p class="text-3xl font-bold text-[#ff8da3]">Recommendations</p>
 
-<div class="grid grid-cols-4 gap-8 w-[3/4]">
-    <Anime v-for="anime in info?.recommendations" :key="anime.id" :anime="anime" />
-</div>
+          <div class="grid grid-cols-4 gap-8 w-[3/4]">
+            <Anime v-for="anime in info?.recommendations" :key="anime.id" :anime="anime" />
+          </div>
         </div>
         <Sidebar title="Related" :animes="info?.relatedAnime" />
       </div>
@@ -71,22 +71,71 @@ onMounted(async () => {
     isource.value = await watchEpisode(info.value!.episodes!.at(0)?.id);
   }
 
+  const video = document.querySelector("video");
+
+	const defaultOptions = {};
+
   console.log('isource' + isource.value?.sources.at(0)?.url);
 
   if (Hls.isSupported()) {
     hls.loadSource(isource.value?.sources.at(0)?.url);
 
-    hls.attachMedia(document.getElementById('player'));
     hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
-      console.log('manifest loaded, found ' + data.levels.length + ' quality level');
+      const availableQualities = hls.levels.map((l) => l.height);
+      availableQualities.unshift(0); //prepend 0 to quality array
+
+      // Add new qualities to option
+      defaultOptions.quality = {
+        default: 0, //Default - AUTO
+        options: availableQualities,
+        forced: true,
+        onChange: (e) => updateQuality(e)
+      };
+      // Add Auto Label
+      defaultOptions.i18n = {
+        qualityLabel: {
+          0: "Auto"
+        }
+      };
+
+
+      hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
+        var span = document.querySelector(
+          ".plyr__menu__container [data-plyr='quality'][value='0'] span"
+        );
+        if (hls.autoLevelEnabled) {
+          span.innerHTML = `AUTO (${hls.levels[data.level].height}p)`;
+        } else {
+          span.innerHTML = `AUTO`;
+        }
+
+      });
     });
+
+
+    hls.attachMedia(video);
+    window.hls = hls;
+
   } else if (document.getElementById('player').canPlayType('application/vnd.apple.mpegurl')) {
     document.getElementById('player').src = isource.value?.sources.at(0)?.url;
   } else {
-    alert("Your device doesn't support streaming.")
+    video.src = source;
   }
+});
 
-})
+
+function updateQuality(newQuality) {
+  if (newQuality === 0) {
+    window.hls.currentLevel = -1; //Enable AUTO quality if option.value = 0
+  } else {
+    window.hls.levels.forEach((level, levelIndex) => {
+      if (level.height === newQuality) {
+        console.log("Found quality match with " + newQuality);
+        window.hls.currentLevel = levelIndex;
+      }
+    });
+  }
+}
 
 function playEpisode(episodeId: string) {
   watchEpisode(episodeId).then((data) => {
@@ -112,3 +161,17 @@ function playEpisode(episodeId: string) {
 
 
 </script>
+
+<style scoped>
+
+use {
+  width: 10px;
+  height: 10px;
+}
+
+.icon--pressed {
+  width: 10px;
+  height: 10px;
+}
+
+</style>

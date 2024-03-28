@@ -23,6 +23,11 @@ export default defineNuxtConfig({
       }
     }
   },
+  vite: {
+    build: {
+      target: "esnext"
+    }
+  },
   routeRules: {
     '/watch/:id': {
       ssr: false

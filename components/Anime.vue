@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 
-import type { IAnimeResult } from '@pranavpurwar/consumet';
+import type { IAnimeResult } from '@consumet/extensions';
 
 interface Props {
     anime: IAnimeResult
