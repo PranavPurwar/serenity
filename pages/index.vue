@@ -8,9 +8,9 @@
         <h1 class="text-4xl md:text-5xl font-bold text-white font-sans subpixel-antialiased">Serenity</h1>
 
         <div class="flex gap-4">
-          <input class="rounded-3xl p-4 w-[30vw] border-0 outline-0" type="search" id="gsearch" name="gsearch"
+          <input class="rounded-3xl p-4 w-[30vw] border-0 outline-0" type="search" id="search" name="gsearch"
             placeholder="Search anime...">
-          <img src="/svg/search.svg" alt="Search" class="h-14 w-14 p-3 bg-[#ffb7c5] rounded-2xl" />
+          <img src="/svg/search.svg" alt="Search" class="h-14 w-14 p-3 bg-[#ffb7c5] rounded-2xl hover:cursor-pointer" @click="search" />
         </div>
 
         <div class="flex gap-4 bg-[#ff5073] text-gray-50 rounded-3xl p-4 pr-8 pl-8 font-semibold text-2xl items-center w-fit hover:cursor-pointer" @click="gotoPopular">
@@ -39,10 +39,18 @@ import Anime from '~/components/Anime.vue';
 
 import { popular } from '../server/provider'
 
-function gotoPopular() {
-    const router = useRouter();
+const router = useRouter();
 
+function gotoPopular() {
     router.push('/popular');
+}
+
+function search() {
+    const search = document.getElementById('search') as HTMLInputElement;
+
+    if (search.value) {
+        router.push(`/search?query=${search.value}`);
+    }
 }
 
 </script>

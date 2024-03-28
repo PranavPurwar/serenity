@@ -6,7 +6,7 @@
 
             <p v-if="anime.nsfw"
                 class="absolute top-2 left-4 bg-[#e91842] p-2 rounded-lg text-white font-semibold text-xs">18+</p>
-            <div class="flex gap-2 absolute bottom-2 right-4 text-white font-semibold">
+            <div v-if="anime.sub" class="flex gap-2 absolute bottom-2 right-4 text-white font-semibold">
                 <div class="flex gap-2 p-2 bg-[#e91842] h-6 rounded-lg items-center">
                     <img class="h-5 w-5 rounded-full invert" src="/svg/cc.svg" />
                     <p>{{ anime.sub }}</p>
@@ -21,7 +21,7 @@
         <h1 class="text-lg font-bold text-gray-50 antialiased line-clamp-2">{{ anime.title }}</h1>
         <div class="flex justify-between">
             <p class="text-gray-300">{{ anime.type }}</p>
-            <p class="text-gray-300">{{ anime.duration }}</p>
+            <p class="text-gray-300">{{ anime.duration || anime.releaseDate }}</p>
         </div>
     </div>
 

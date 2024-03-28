@@ -10,6 +10,8 @@ const domain = 'https://api-serenity.vercel.app'
 
 const provider = '/anime/zoro/'
 
+const tmdb = domain + '/meta/tmdb/'
+
 const base = domain + provider
 
 async function updateData() {
@@ -43,14 +45,22 @@ async function updateData() {
 }
 
 async function getAnimeDetails(id: string) {
-    return await $fetch(base + 'info?id=' + id)
+    return await $fetch(base + 'info?id=' + id);
 }
 
 async function watchEpisode(id: string) {
-    return await $fetch(base + 'watch?episodeId=' + id)
+    return await $fetch(base + 'watch?episodeId=' + id);
+}
+
+async function searchAnime(query: string) {
+    return (await $fetch(tmdb + encodeURIComponent(query))).results;
+}
+
+async function getTmdbDetails(id: string) {
+    return await $fetch(tmdb + 'info/' + id + '?type=tv');
 }
 
 
 await updateData();
 
-export { base, topAiring, popular, mostFavorited, latestCompleted, recentlyUpdated, recentlyAdded, topUpcoming, getAnimeDetails, watchEpisode };
+export { base, topAiring, popular, mostFavorited, latestCompleted, recentlyUpdated, recentlyAdded, topUpcoming, getAnimeDetails, watchEpisode, searchAnime, getTmdbDetails };

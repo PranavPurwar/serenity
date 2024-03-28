@@ -7,9 +7,9 @@
                 <img :src="info?.image" class="rounded-3xl w-[200px] h-fit" />
                 <div class="flex flex-col gap-4 text-gray-50">
                     <h1 class="text-3xl font-bold">{{ info?.title || info?.japaneseTitle }}</h1>
-                    <div class="flex gap-4">
+                    <div class="flex gap-4 items-center">
                         <p>{{ info?.type }}</p>
-                        <p>{{ info?.genres }}</p>
+                        <p v-for="genre in info?.genres" class="py-1 px-2 border border-gray-400 rounded-full">{{ genre }}</p>
                     </div>
                     <p><span class="strong font-semibold">{{ info?.totalEpisodes }}</span> episodes</p>
                     <p class="antialiased">{{ info?.description }}</p>
@@ -19,12 +19,12 @@
                         <img class="h-6 w-6 rounded-full invert" src="/svg/play.svg" />
                     </a>
                 </div>
-                <Sidebar title="Related" :animes="info?.relatedAnime" />
+                <Sidebar title="Related" :animes="info?.relatedAnime || info?.similar" />
 
             </div>
             <p class="text-3xl font-bold text-[#ff8da3]">Recommendations</p>
 
-            <div class="grid grid-cols-4 gap-8 w-[3/4]">
+            <div class="grid grid-cols-4 gap-8 w-[70vw]">
                 <Anime v-for="anime in info?.recommendations" :key="anime.id" :anime="anime" />
             </div>
 
@@ -44,7 +44,7 @@ import AppHeader from '../components/AppHeader.vue';
 import AppFooter from '../components/AppFooter.vue';
 import Sidebar from '../components/Sidebar.vue';
 import Anime from '../components/Anime.vue';
-import { getAnimeDetails } from '~/server/provider'
+import { getAnimeDetails, getTmdbDetails } from '~/server/provider'
 
 const route = useRoute();
 
@@ -53,11 +53,19 @@ const id = route.params.id as string;
 const info = ref<IAnimeInfo | null>(null);
 
 onMounted(async () => {
+    if (Number.isNaN(id)) {
     await getAnimeDetails(id).then((data) => {
         info.value = data;
 
         console.log(data);
     })
+} else {
+await getTmdbDetails(id).then((data) => {
+    info.value = data;
+
+    console.log(data);
+})
+}
 })
 
 </script>
