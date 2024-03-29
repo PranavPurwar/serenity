@@ -6,12 +6,14 @@
       <AppHeader :isScrollable='true' />
 
       <div class="flex gap-4 h-fit">
-        <div class="flex flex-col gap-16 px-16 w-[80vw]">
+        <div class="flex flex-col gap-8 px-16 w-[80vw]">
           <h1 class="text-3xl font-bold text-[#ff8da3]">{{ info?.anime.info.name || info?.anime.moreInfo.japanese }}
           </h1>
 
           <div id="container">
-            <video id="player" class="w-full h-fit rounded-2xl" controls playsinline crossorigin="anonymous">
+            <iframe v-if="vidSrc" :src="vidSrc" class="w-full h-[67vh] rounded-2xl" frameborder="0"
+              allowfullscreen></iframe>
+            <video v-else id="player" class="w-full h-fit rounded-2xl" controls playsinline crossorigin="anonymous">
               <source :src="source" type="application/x-mpegURL">
 
               <track kind="subtitles" v-for="subtitle in tracks" :src="subtitle.file" :srclang="subtitle.label"
@@ -19,7 +21,7 @@
             </video>
           </div>
 
-          <div class="flex gap-8 items-center rounded-s-xl bg-gray-800">
+          <div v-if="!vidSrc && info?.anime.info.stats.episodes.sub" class="flex gap-8 items-center rounded-s-xl bg-gray-800">
             <div class="flex flex-col gap-4 bg-[#ffb7c5] p-8 rounded-s-xl w-1/3">
               <p class="text-gray-900 font-semibold tracking-wide text-xl">You are watching <span
                   class="font-bold">episode {{ episode?.number }}.</span></p>
@@ -32,26 +34,25 @@
                 <p class="font-semibold me-4">SUB:</p>
                 <div class="flex gap-4">
                   <p class="bg-[#ffb7c5] text-gray-900 p-2 rounded-lg hover:cursor-pointer font-semibold"
-                    v-for="server in servers?.sub" :id="server.serverName" @click="changeServer(server.serverName, 'sub')">{{ server.serverName.toUpperCase() }}</p>
+                    v-for="server in servers?.sub" :id="server.serverName"
+                    @click="changeServer(server.serverName, 'sub')">{{ server.serverName.toUpperCase() }}</p>
                 </div>
 
 
               </div>
-              <div v-if="servers?.dub" class="flex gap-2 text-center items-center">
+              <div v-if="info?.anime.info.stats.episodes.dub" class="flex gap-2 text-center items-center">
                 <img src="/svg/dub.svg" class="h-6 w-6 invert" alt="Subtitles" />
                 <p class="font-semibold me-4">DUB:</p>
                 <div class="flex gap-4">
                   <p class="bg-[#ffb7c5] text-gray-900 p-2 rounded-lg hover:cursor-pointer font-semibold"
-                    v-for="server in servers?.dub" :id="server.serverName" @click="changeServer(server.serverName, 'dub')">{{ server.serverName.toUpperCase() }}</p>
+                    v-for="server in servers?.dub" :id="server.serverName"
+                    @click="changeServer(server.serverName, 'dub')">{{ server.serverName.toUpperCase() }}</p>
                 </div>
               </div>
-
             </div>
-
-
           </div>
 
-          <div class="flex flex-col gap-2 rounded-2xl p-4 h-[40vh] overflow-auto">
+          <div class="flex flex-col gap-2 rounded-2xl p-4 max-h-[40vh] overflow-auto">
             <div class="flex gap-4 bg-gray-800 p-4 hover:cursor-pointer" v-for="episode in episodes"
               :id="episode.episodeId" @click="playEpisode(episode.episodeId)">
               <p class="text-gray-200 font-semibold">{{ episode.number }}</p>
@@ -75,11 +76,11 @@
 <script setup lang="ts">
 
 import { useRoute } from 'vue-router';
-import { getAnimeDetails, getServers, getStream, getEpisodes } from '../../server/provider';
+import { getAnimeDetails, getServers, getStream, getEpisodes, getTmdbFromInfo } from '../../server/provider';
 import { ref } from 'vue';
 import AppHeader from '../../components/AppHeader.vue';
 import AppFooter from '../../components/AppFooter.vue';
-import type { Info, Episode, Servers, Stream } from '../../server/types';
+import type { Info, Episode, Servers, Stream, Result } from '../../server/types';
 import Hls from 'hls.js';
 
 const route = useRoute();
@@ -99,10 +100,32 @@ const stream = ref<Stream>();
 const tracks = ref<object | null>();
 const servers = ref<Servers>();
 
+const vidSrc = ref<string | null>(null);
+const tmdb = ref<Result | null>(null);
+
 const hls = new Hls();
 
 onMounted(async () => {
   info.value = await getAnimeDetails(id.value)
+
+  // Load using vidsrc when not available on server
+  /*
+    tmdb.value = await getTmdbFromInfo(info.value);
+  
+    if (tmdb.value) {
+      console.log('Loaded tmdb');
+  
+      const type = tmdb.value.type === 'Movie' ? 'movie' : 'tv';
+      vidSrc.value = 'https://vidsrc.to/embed/' + type + '/' + tmdb.value.id;
+  
+      await $fetch(vidSrc.value).then((res) => {
+        if (res.status != undefined) {
+          vidSrc.value = null;
+        }
+      });
+      return;
+    }
+  */
 
   episodes.value = await getEpisodes(id.value);
 
@@ -115,22 +138,22 @@ onMounted(async () => {
   servers.value = await getServers(episode.value!.episodeId!);
 
   try {
-  if (server) {
-    if (category) {
-      stream.value = await getStream(episode.value!.episodeId, category, server);
+    if (server) {
+      if (category) {
+        stream.value = await getStream(episode.value!.episodeId, category, server);
+      } else {
+        stream.value = await getStream(episode.value!.episodeId, 'sub', server);
+      }
     } else {
-      stream.value = await getStream(episode.value!.episodeId, 'sub', server);
+      if (category) {
+        stream.value = await getStream(episode.value!.episodeId, category);
+      } else {
+        stream.value = await getStream(episode.value!.episodeId);
+      }
     }
-  } else {
-    if (category) {
-      stream.value = await getStream(episode.value!.episodeId, category);
-    } else {
-      stream.value = await getStream(episode.value!.episodeId);
-    }
+  } catch (e) {
+    alert('This episode is not available on this server. Please try another server.');
   }
-} catch (e) {
-  alert('This episode is not available on this server. Please try another server.');
-}
 
   source.value = stream.value!.sources.at(0)?.url
 
@@ -156,8 +179,9 @@ onMounted(async () => {
   }
 });
 
+
 function playEpisode(episodeId: string) {
-    window.location.href = `/watch/${id.value}?episodeId=${episodeId}`;
+  window.location.href = `/watch/${id.value}?episodeId=${episodeId}`;
 }
 
 function changeServer(serverName: string, category: string) {

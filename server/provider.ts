@@ -1,4 +1,4 @@
-import { Anime, Episode, Home, Info, LatestEpisodes, Servers, Spotlight, Stream, Top10Animes, TopAiring, TopUpcoming, Trending, } from './types';
+import { Anime, Episode, Home, Info, LatestEpisodes, Result, Servers, Spotlight, Stream, TmdbSearch, Top10Animes, TopAiring, TopUpcoming, Trending, } from './types';
 
 var home: Home
 
@@ -18,8 +18,9 @@ var recentlyUpdated: Anime[]
 
 const domain = 'https://hianime-api.vercel.app/anime/'
 
+const serenity = 'https://api-serenity.vercel.app'
 
-const tmdb = domain + '/meta/tmdb/'
+const tmdb = serenity + '/meta/tmdb/'
 
 async function updateData() {
     await $fetch(domain + 'home').then((data) => {
@@ -53,6 +54,14 @@ async function updateData() {
     });
 }
 
+function substringBefore(str: string, delimiter: string) {
+    const delimiterIndex = str.indexOf(delimiter);
+
+    if (delimiterIndex === -1) return str;
+
+    return str.substring(0, delimiterIndex);
+}
+
 async function getAnimeDetails(id: string): Promise<Info> {
     return await $fetch(domain + 'info?id=' + id);
 }
@@ -71,6 +80,23 @@ async function getStream(episodeId: string, type: string = 'sub', server: string
 
 async function searchAnime(query: string) {
     return (await $fetch(domain + 'search?q=' + encodeURIComponent(query))).animes;
+}
+
+async function getTmdbFromInfo(info: Info): Promise<Result | null> {
+    const search: TmdbSearch = await $fetch(tmdb + encodeURIComponent(info.anime.info.name));
+
+    if (search.results.length === 0) return null;
+
+    const type = info.anime.info.stats.type === 'TV' ? 'TV Series' : 'Movie';
+    console.log(type);
+    const year = substringBefore(info.anime.moreInfo.aired, ' to ').substring(info.anime.moreInfo.aired.indexOf(', ') + 2, info.anime.moreInfo.aired.length - 1);
+    console.log(year);
+
+    for (const result of search.results) {
+        if (result.type === type && result.releaseDate === year) return result;
+    }
+
+    return null;
 }
 
 async function searchSuggestions(query: string) {
@@ -106,5 +132,7 @@ export {
     getStream,
     searchAnime,
     getTmdbDetails,
-    getEpisodes
+    getEpisodes,
+    getTmdbFromInfo,
+    searchSuggestions,
 };

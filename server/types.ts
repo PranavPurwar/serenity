@@ -178,3 +178,20 @@ export interface Source {
   url: string
   type: string
 }
+
+export interface TmdbSearch {
+  currentPage: number
+  hasNextPage: boolean
+  results: Result[]
+  totalResults: number
+  totalPages: number
+}
+
+export interface Result {
+  id: number
+  title: string
+  image: string
+  type: string
+  rating: number
+  releaseDate: string
+}
