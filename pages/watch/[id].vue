@@ -6,14 +6,17 @@
       <AppHeader :isScrollable='true' />
 
       <div class="flex gap-4 h-fit">
-        <div class="flex flex-col gap-8 px-16 w-[80vw]">
+        <div class="flex flex-col gap-8 px-16 w-[80vw] pe-20">
           <h1 class="text-3xl font-bold text-[#ff8da3]">{{ info?.anime.info.name || info?.anime.moreInfo.japanese }}
           </h1>
 
-          <div id="container">
+          <div id="container" class="relative">
+            <div id="content">
+              <p class="text-xl w-fit p-4 rounded-2xl bg-gray-50 opacity-70 font-bold text-[#ff8da3] hover:cursor-pointer z-[9999] hidden">Skip opening</p>
+            </div>
             <iframe v-if="vidSrc" :src="vidSrc" class="w-full h-[67vh] rounded-2xl" frameborder="0"
               allowfullscreen></iframe>
-            <video v-else id="player" class="w-full h-fit rounded-2xl" controls playsinline crossorigin="anonymous">
+            <video v-else id="player" class="w-full h-fit rounded-2xl z-1" controls playsinline crossorigin="anonymous">
               <source :src="source" type="application/x-mpegURL">
 
               <track kind="subtitles" v-for="subtitle in tracks" :src="subtitle.file" :srclang="subtitle.label"
@@ -21,7 +24,8 @@
             </video>
           </div>
 
-          <div v-if="!vidSrc && info?.anime.info.stats.episodes.sub" class="flex gap-8 items-center rounded-s-xl bg-gray-800">
+          <div v-if="!vidSrc && info?.anime.info.stats.episodes.sub"
+            class="flex gap-8 items-center rounded-s-xl bg-gray-800">
             <div class="flex flex-col gap-4 bg-[#ffb7c5] p-8 rounded-s-xl w-1/3">
               <p class="text-gray-900 font-semibold tracking-wide text-xl">You are watching <span
                   class="font-bold">episode {{ episode?.number }}.</span></p>
@@ -52,8 +56,8 @@
             </div>
           </div>
 
-          <div class="flex flex-col gap-2 rounded-2xl p-4 max-h-[40vh] overflow-auto">
-            <div class="flex gap-4 bg-gray-800 p-4 hover:cursor-pointer" v-for="episode in episodes"
+          <div class="flex flex-col gap-2 rounded-2xl p-4 max-h-[40vh] w-full overflow-auto">
+            <div class="flex gap-4 bg-gray-800 rounded-xl p-4 hover:cursor-pointer" v-for="episode in episodes"
               :id="episode.episodeId" @click="playEpisode(episode.episodeId)">
               <p class="text-gray-200 font-semibold">{{ episode.number }}</p>
               <p class="text-gray-200">{{ episode.title }}</p>
@@ -195,4 +199,12 @@ function changeServer(serverName: string, category: string) {
 
 </script>
 
-<style scoped></style>
+<style scoped>
+ 
+#content {
+  position: absolute;
+  bottom: 8vh;
+  right: 1vw;
+}
+
+</style>

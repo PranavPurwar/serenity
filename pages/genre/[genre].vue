@@ -1,5 +1,5 @@
 <template>
-  <div class="w-[100vw] min-h-[100vh] bg-gradient-to-b from-gray-800 to-[#040404]">
+  <div class="flex flex-col min-h-[100vh] bg-gradient-to-b from-gray-800 to-[#040404]">
     <AppHeader />
 
     <h1 class="text-3xl font-bold text-[#ff8da3] px-16">{{ genre }}</h1>
@@ -10,8 +10,8 @@
         <Anime v-for="anime in animes" :key="anime.id" :anime="anime" />
       </div>
 
-<Sidebar />
-      </div>
+      <Sidebar />
+    </div>
     <AppFooter />
   </div>
 </template>
@@ -33,13 +33,11 @@ const genre = route.params.genre;
 const animes = ref([]);
 
 onMounted(async () => {
-    animes.value = await getAnimeByGenre(genre);
+  animes.value = await getAnimeByGenre(genre);
 })
 
 
 
 </script>
 
-<style>
-
-</style>
+<style></style>

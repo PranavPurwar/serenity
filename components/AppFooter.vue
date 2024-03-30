@@ -1,9 +1,5 @@
 <template>
-
-    <div class="px-[8%]">
-    </div>
-    
-        <footer class="flex flex-col gap-6 text-gray-600 bottom-0 w-full p-8">
+        <footer class="flex flex-col gap-6 text-gray-600 bottom w-full p-8">
             <div class="flex md:justify-between gap-2 md:gap-8">
     
                 <div class="hidden lg:flex flex-col gap-2">

@@ -108,7 +108,7 @@ async function getTmdbDetails(id: string) {
 }
 
 async function getAnimeByGenre(genre: string) {
-    return (await $fetch(domain + 'genre/' + genre)).animes;
+    return (await $fetch(domain + 'genre/' + genre.toLocaleLowerCase().replace(' ', '-') )).animes;
 }
 
 await updateData();
