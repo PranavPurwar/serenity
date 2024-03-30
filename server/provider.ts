@@ -108,7 +108,7 @@ async function getTmdbDetails(id: string) {
 }
 
 async function getAnimeByGenre(genre: string) {
-    return await $fetch(domain + 'genre/' + genre);
+    return (await $fetch(domain + 'genre/' + genre)).animes;
 }
 
 await updateData();
@@ -135,4 +135,5 @@ export {
     getEpisodes,
     getTmdbFromInfo,
     searchSuggestions,
+    getAnimeByGenre
 };
