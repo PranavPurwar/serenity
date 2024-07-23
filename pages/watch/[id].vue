@@ -1,13 +1,13 @@
 <template>
 
   <body>
-    <div class="w-[100vw] min-h-[100vh] bg-gradient-to-b from-gray-800 to-[#040404]">
+    <div class="bg-gradient-to-b from-gray-800 to-[#040404]">
 
       <AppHeader :isScrollable='true' />
 
-      <div class="flex gap-4 h-fit">
-        <div class="flex flex-col gap-8 px-16 w-[80vw] pe-20">
-          <h1 class="text-3xl font-bold text-[#ff8da3]">{{ info?.anime.info.name || info?.anime.moreInfo.japanese }}
+      <div class="flex gap-4">
+        <div class="flex flex-col gap-8 xl:pl-16 xl:pr-8">
+          <h1 class="text-3xl font-bold text-[#ffc8d3]">{{ info?.anime.info.name || info?.anime.moreInfo.japanese }}
           </h1>
 
           <div id="container" class="relative">
@@ -29,7 +29,7 @@
             <div class="flex flex-col gap-4 bg-[#ffb7c5] p-8 rounded-s-xl w-1/3">
               <p class="text-gray-900 font-semibold tracking-wide text-xl">You are watching <span
                   class="font-bold">episode {{ episode?.number }}.</span></p>
-              <p class="text-gray-900 font-medium text-lg antialiased">If the current server doesn't work, try switching
+              <p class="text-gray-900 font-medium text-md antialiased">If the current server doesn't work, try switching
                 to some other server.</p>
             </div>
             <div class="flex flex-col text-gray-200 gap-4">
@@ -58,7 +58,7 @@
 
           <div class="flex flex-col gap-2 rounded-2xl p-4 max-h-[40vh] w-full overflow-auto">
             <div class="flex gap-4 bg-gray-800 rounded-xl p-4 hover:cursor-pointer" v-for="episode in episodes"
-              :id="episode.episodeId" @click="playEpisode(episode.episodeId)">
+              :id="episode.episodeId" @click="playEpisode(episode.number, episode.episodeId)">
               <p class="text-gray-200 font-semibold">{{ episode.number }}</p>
               <p class="text-gray-200">{{ episode.title }}</p>
             </div>
@@ -66,7 +66,7 @@
 
           <p class="text-3xl font-bold text-[#ff8da3]">Recommendations</p>
 
-          <div class="grid lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             <Anime v-for="anime in info?.recommendedAnimes" :key="anime.id" :anime="anime" />
           </div>
         </div>
@@ -80,7 +80,7 @@
 <script setup lang="ts">
 
 import { useRoute } from 'vue-router';
-import { getAnimeDetails, getServers, getStream, getEpisodes, getTmdbFromInfo } from '../../server/provider';
+import { getAnimeDetails, getServers, getStream, getEpisodes, getTmdbFromInfo, getTmdbDetails } from '../../server/provider';
 import { ref } from 'vue';
 import AppHeader from '../../components/AppHeader.vue';
 import AppFooter from '../../components/AppFooter.vue';
@@ -89,56 +89,43 @@ import Hls from 'hls.js';
 
 const route = useRoute();
 
-const id = ref(route.params.id)
+const id = route.params.id as string;
 const episodeId = route.query.episodeId as string | undefined;
 const server = route.query.server as string | undefined;
 const category = route.query.category as string | undefined;
 
-console.log('episodeId' + episodeId);
-
-const info = ref<Info | null>(null);
+const info = await getAnimeDetails(id)
 const episode = ref<Episode>();
 const source = ref<string>()
-const episodes = ref<Episode[]>();
+const episodes = await getEpisodes(id);
 const stream = ref<Stream>();
 const tracks = ref<object | null>();
 const servers = ref<Servers>();
 
 const vidSrc = ref<string | null>(null);
-const tmdb = ref<Result | null>(null);
+const tmdb = await getTmdbFromInfo(info);
+
+const type = tmdb?.type === 'Movie' ? 'movie' : 'tv';
 
 const hls = new Hls();
 
 onMounted(async () => {
-  info.value = await getAnimeDetails(id.value)
-
-  // Load using vidsrc when not available on server
-  /*
-    tmdb.value = await getTmdbFromInfo(info.value);
-  
-    if (tmdb.value) {
-      console.log('Loaded tmdb');
-  
-      const type = tmdb.value.type === 'Movie' ? 'movie' : 'tv';
-      vidSrc.value = 'https://vidsrc.to/embed/' + type + '/' + tmdb.value.id;
-  
-      await $fetch(vidSrc.value).then((res) => {
-        if (res.status != undefined) {
-          vidSrc.value = null;
-        }
-      });
-      return;
-    }
-  */
-
-  episodes.value = await getEpisodes(id.value);
-
   if (episodeId) {
-    episode.value = episodes.value.find((e) => e.episodeId === episodeId);
+    episode.value = episodes.find((e) => e.episodeId === episodeId);
   } else {
-    episode.value = episodes.value[0];
+    episode.value = episodes[0];
   }
 
+  if (tmdb) {
+    const streamUrl = 'https://vidsrc.net/embed/' + type + '/' + tmdb.id + '?season=1&episode=' + episode.value?.number;
+    console.log(streamUrl)
+      vidSrc.value = streamUrl
+  } else {
+    streamZoro();
+  }
+});
+
+async function streamZoro() {
   servers.value = await getServers(episode.value!.episodeId!);
 
   try {
@@ -181,11 +168,18 @@ onMounted(async () => {
   } else {
     alert('Your browser does not support HLS');
   }
-});
+}
 
 
-function playEpisode(episodeId: string) {
-  window.location.href = `/watch/${id.value}?episodeId=${episodeId}`;
+function playEpisode(episodeNo: number, episodeId: string) {
+  const streamUrl = 'https://vidsrc.net/embed/' + type + '/' + tmdb.id + '?season=1&episode=' + episodeNo;
+    fetch(streamUrl).then((res) => {
+      if (res.status != 404) {
+        vidSrc.value = streamUrl
+      } else {
+        navigateTo('/watch/' + id + '?episodeId=' + episodeId)
+      }
+    })
 }
 
 function changeServer(serverName: string, category: string) {

@@ -99,7 +99,9 @@ export interface Anime {
     name: string
     poster: string
     description: string
-    stats: Stats
+    stats: Stats,
+    promotionalVideos: PromotionalVideo[],
+    characters: CharacterVoiceActor[]
   }
   
   export interface Stats {
@@ -108,6 +110,24 @@ export interface Anime {
     episodes: Episodes
     type: string
     duration: string
+  }
+
+  export interface PromotionalVideo {
+    title: string | undefined,
+    source: string | undefined,
+    thumbnail: string | undefined
+  }
+
+  export interface Character {
+    id: string,
+    poster: string,
+    name: string,
+    cast: string
+  }
+
+  export interface CharacterVoiceActor {
+    character: Character,
+    voiceActor: Character
   }
   
   export interface MoreInfo {

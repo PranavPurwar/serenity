@@ -1,55 +1,96 @@
 <template>
-    <div class="w-[100vw] min-h-[100vh] bg-gradient-to-b from-gray-800 to-[#040404]">
+    <div class="bg-gradient-to-b from-gray-800 to-[#040404] wp[1/4]">
         <AppHeader />
 
-        <div class="flex flex-col gap-16 px-16 py-8">
-            <div class="flex gap-8 w-3/4">
-                <img :src="info?.anime.info.poster" class="rounded-3xl w-[200px] h-fit" />
-                <div class="flex flex-col gap-4 text-gray-50">
-                    <h1 class="text-3xl font-bold">{{ info?.anime.info.name || info?.anime.moreInfo.japanese }}</h1>
-                    <div class="flex gap-4 items-center">
-                        <p>{{ info?.anime.info.stats.type }}</p>
-                        <p v-for="genre in info?.anime.moreInfo.genres" class="py-1 px-2 border border-gray-400 rounded-full">{{ genre }}</p>
+        <div class="flex gap-6 pl-8">
+            <div class="flex flex-col gap-12 xl:gap-12">
+                <div class="flex gap-8 text-lg">
+                    <img
+                        :src="info?.anime.info.poster"
+                        class="rounded-3xl w-[200px] h-fit object-cover"
+                    />
+                    <div class="flex flex-col gap-4 text-gray-50">
+                        <h1 class="text-4xl font-bold font-sans">
+                            {{
+                                info?.anime.info.name ||
+                                info?.anime.moreInfo.japanese
+                            }}
+                        </h1>
+                        <div class="flex gap-4 items-center">
+                            <p>{{ info?.anime.info.stats.type }}</p>
+                            <p
+                                v-for="genre in info?.anime.moreInfo.genres"
+                                class="py-1 px-2 border border-gray-400 rounded-xl hover:bg-gray-600"
+                            >
+                                {{ genre }}
+                            </p>
+                        </div>
+                        <p>
+                            <span class="strong font-semibold">{{
+                                info?.anime.info.stats.episodes.sub
+                            }}</span>
+                            episodes
+                        </p>
+                        <p
+                            id="description"
+                            class="text-lg font-normal line-clamp-4"
+                            @click="expandText"
+                        >
+                            {{ info?.anime.info.description }}
+                        </p>
+
+                        <div
+                            class="flex gap-4 items-center text-center bg-[#e25470] hover:bg-[#b3324c] hover:cursor-pointer rounded-full p-4 pr-8 pl-8 font-semibold text-2xl w-fit"
+                            @click="watch"
+                        >
+                            Watch
+                            <img
+                                class="h-6 w-6 rounded-full invert"
+                                src="/svg/play.svg"
+                            />
                     </div>
-                    <p><span class="strong font-semibold">{{ info?.anime.info.stats.episodes.sub }}</span> episodes</p>
-                    <p class="antialiased">{{ info?.anime.info.description }}</p>
-
-                    <a class="flex gap-4 items-center text-center bg-[#ff5073] rounded-full p-4 pr-8 pl-8 font-semibold text-2xl w-fit" :href="'/watch/' + id">
-                        Watch
-                        <img class="h-6 w-6 rounded-full invert" src="/svg/play.svg" />
-                    </a>
+                    </div>
                 </div>
-                <Sidebar title="Related" :animes="info?.relatedAnimes" />
+                <p class="text-3xl font-bold text-[#ff8da3]">Recommendations</p>
 
+                <div class="grid grid-cols-4 gap-8">
+                    <Anime
+                        v-for="anime in info?.recommendedAnimes"
+                        :key="anime.id"
+                        :anime="anime"
+                    />
+                </div>
             </div>
-            <p class="text-3xl font-bold text-[#ff8da3]">Recommendations</p>
-
-            <div class="grid grid-cols-4 gap-8 w-[70vw]">
-                <Anime v-for="anime in info?.recommendedAnimes" :key="anime.id" :anime="anime" />
-            </div>
-
+            <Sidebar />
         </div>
 
         <AppFooter />
     </div>
-
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
+import type { Info } from "~/server/types";
+import { getAnimeDetails } from "~/server/provider";
 
-import { ref } from 'vue'
-import type { Info } from '~/server/types'
-import { getAnimeDetails } from '~/server/provider';
+const router = useRoute();
 
-const router = useRoute()
+const id = router.params.id;
 
-const id = ref(router.params.id)
+const info = ref<Info | null>(null);
 
-const info = ref<Info | null>(null)
+info.value = await getAnimeDetails(id);
 
-onMounted(async () => {
-    info.value = await getAnimeDetails(id.value)
-})
+async function watch() {
+    await navigateTo('/watch/' + id)
+}
 
-
+function expandText() {
+    const description = document.getElementById("description")!;
+    if (description.classList.contains("line-clamp-4")) {
+        description.classList.remove("line-clamp-4");
+    } else {
+        description.classList.add("line-clamp-4");
+    }
+}
 </script>

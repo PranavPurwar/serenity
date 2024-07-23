@@ -15,7 +15,7 @@
         </div>
 
         <div
-          class="hidden md:flex gap-4 bg-[#ff5073] text-gray-50 rounded-3xl p-4 pr-8 pl-8 font-semibold text-2xl items-center w-fit hover:cursor-pointer"
+          class="hidden md:flex gap-4 bg-[#ff5073] text-gray-50 rounded-3xl p-3 pr-8 pl-8 font-semibold text-2xl items-center w-fit hover:cursor-pointer"
           @click="gotoPopular">
           Watch the latest anime episodes and movies for free
           <img class="h-12 w-12 rounded-full invert" src="/svg/next.svg" />

@@ -1,10 +1,10 @@
 <template>
-  <header class="p-2 md:p-8 md:py-12 xl:p-16 backdrop-blur-xl top-0 w-[100vw] z-10">
+  <header class="p-2 md:p-8 md:py-12">
 
     <div class="flex gap-4 pr-4 items-center text-center">
       <div class="hidden lg:flex gap-12 w-full text-gray-200 text-center items-center justify-center">
         <a v-for="header in HEADERS" :key="header.title" :href="header.link"
-          class="text-xl font-semibold text-center no-underline hover:underline font-sans antialiased hover:cursor-pointer">
+          class="text-xl font-semibold text-center no-underline hover:underline font-sans antialiased">
           {{ header.title }}</a>
       </div>
     </div>
@@ -17,7 +17,7 @@
 import { HEADERS } from './data'
 
 function navigateTo(link: string) {
-  useRouter().push(link)
+  navigateTo(link)
 }
 
 
@@ -37,12 +37,3 @@ if (!props.isScrollable) {
 });
 
 </script>
-
-<style scoped>
-/* Add any necessary styles here */
-.sticky {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-</style>

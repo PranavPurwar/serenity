@@ -13,9 +13,7 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
-  experimental: {
-    viewTransition: true,
-  },
+
   nitro: {
     esbuild: {
       options: {
@@ -23,16 +21,19 @@ export default defineNuxtConfig({
       }
     }
   },
+
   vite: {
     build: {
       target: "esnext"
     }
   },
+
   routeRules: {
     '/watch/:id': {
       ssr: false
     }
   },
 
-  modules: ["@nuxtjs/tailwindcss"],
+  modules: ["@nuxtjs/tailwindcss", "@nuxt/image"],
+  compatibilityDate: "2024-07-22",
 });

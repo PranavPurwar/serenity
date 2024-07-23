@@ -5,8 +5,7 @@ const HEADERS = [
   { title: "Recently Added", link: "/recents" },
   { title: "Recently Updated", link: "/updated" },
   { title: "Most Popular", link: "/popular" },
-  { title: "Top Airing", link: "airing" },
-  { title: "Upcoming", link: "upcoming" },
+  { title: "Top Airing", link: "/airing" },
 ];
 
 export { HEADERS };
