@@ -1,6 +1,6 @@
 <template>
   <div class="flex gap-2 text-white w-[20vw] items-center hover:cursor-pointer" @click="onClick">
-    <LazyNuxtImg class="w-20 rounded-lg" :src="anime.poster" alt="Anime Image" />
+    <LazyNuxtImg class="w-[6rem] rounded-lg" :src="anime.poster" alt="Anime Image" />
     <div class="flex flex-col gap-2 ms-2">
       <p class="line-clamp-2 text-lg font-semibold hover:underline">{{ anime.name }}</p>
 

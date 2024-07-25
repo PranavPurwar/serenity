@@ -58,7 +58,7 @@ function substringBefore(str: string, delimiter: string) {
 
 async function getAnimeDetails(id: string): Promise<Info> {
   const url = domain + "info?id=" + id;
-  return await fetchWithCache(url); // Use caching for anime details
+  return (await fetchWithCache(url)); // Use caching for anime details
 }
 
 async function getEpisodes(id: string): Promise<Episode[]> {
@@ -66,7 +66,7 @@ async function getEpisodes(id: string): Promise<Episode[]> {
 }
 
 async function getServers(episodeId: string): Promise<Servers> {
-  return await $fetch(domain + "servers?episodeId=" + episodeId);
+  return await fetchWithCache(domain + "servers?episodeId=" + episodeId);
 }
 
 async function getStream(episodeId: string, type: string = "sub", server: string = "vidstreaming"): Promise<Stream> {
@@ -78,17 +78,15 @@ async function searchAnime(query: string) {
 }
 
 async function getTmdbFromInfo(info: Info): Promise<Result | null> {
-  const search: TmdbSearch = await $fetch(tmdb + encodeURIComponent(info.anime.info.name));
+  const search: TmdbSearch = await fetchWithCache(tmdb + encodeURIComponent(info.anime.info.name));
 
   if (search.results.length === 0) return null;
 
   const type = info.anime.info.stats.type === "TV" ? "TV Series" : "Movie";
-  console.log(type);
   const year = substringBefore(info.anime.moreInfo.aired, " to ").substring(
     info.anime.moreInfo.aired.indexOf(", ") + 2,
     info.anime.moreInfo.aired.length - 1,
   );
-  console.log(year);
 
   for (const result of search.results) {
     if (result.type === type && result.releaseDate === year) return result;
@@ -106,7 +104,8 @@ async function getTmdbDetails(id: string, type: string = 'tv') {
 }
 
 async function getAnimeByGenre(genre: string) {
-  return (await $fetch(domain + "genre/" + genre.toLocaleLowerCase().replace(" ", "-"))).animes;
+  const url = domain + "genre/" + genre.toLocaleLowerCase().replace(" ", "-")
+  return await fetchWithCache(url).animes
 }
 
 export {

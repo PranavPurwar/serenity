@@ -27,6 +27,7 @@ import AppFooter from "../components/AppFooter.vue";
 import Sidebar from "../components/Sidebar.vue";
 
 import { recentlyAdded } from "../server/provider";
+
 </script>
 
 <style></style>

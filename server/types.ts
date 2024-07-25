@@ -1,5 +1,3 @@
-import { Stringifier } from "postcss"
-
 export interface Home {
     spotlightAnimes: Spotlight[]
     trendingAnimes: Trending[]
@@ -145,10 +143,18 @@ export interface Anime {
 
   export interface Info {
         anime: Anime
-        seasons: any[]
+        seasons: Season[]
         mostPopularAnimes: any[]
         relatedAnimes: any[]
         recommendedAnimes: any[]
+  }
+
+  export interface Season {
+      id: string,
+      name: string,
+      title: string,
+      poster: string,
+      isCurrent: string
   }
   
   export interface Episode {

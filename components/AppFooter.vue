@@ -21,7 +21,7 @@
     <script setup lang="ts">
     
     import { HEADERS } from './data'
-    import { Separator } from '@/components/ui/separator'
+    import Separator from '@/components/ui/separator/Separator.vue'
     
     
     </script>

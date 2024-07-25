@@ -13,7 +13,7 @@
             <h1 class="text-3xl font-bold text-[#ff8da3] text-center">Genres</h1>
 
             <div
-                class="grid grid-cols-2 gap-4 rounded-2xl h-[60vh] truncate"
+                class="grid grid-cols-2 gap-4 rounded-2xl h-[60vh] overflow-auto"
             >
                 <p
                     v-for="genre in genres"
@@ -29,10 +29,11 @@
 
 <script setup lang="ts">
 import { topAiring, genres } from "~/server/provider";
+import type { TopAiring } from "~/server/types"
 
 interface Props {
     title: string;
-    animes: [];
+    animes: TopAiring[];
 }
 
 withDefaults(defineProps<Props>(), {

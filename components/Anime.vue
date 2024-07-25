@@ -5,7 +5,7 @@
             :style='"background-image: url(" + anime.poster + "); background-size: cover; aspect-ratio: 3/4;"'>
 
             <p v-if="anime.nsfw"
-                class="absolute top-2 left-4 bg-[#e91842] p-1 rounded-lg font-semibold text-xs">18+</p>
+                class="left-4 bg-[#e91842] p-1 rounded-lg font-semibold text-xs">18+</p>
             <div v-if="anime.episodes && anime.episodes.sub != null" class="flex gap-2 absolute bottom-2 right-4 text-white font-semibold">
                 <div class="flex gap-1 p-1 bg-[#d1536c] h-6 rounded-md items-center" v-if="anime.episodes.sub">
                     <img class="h-5 w-5 rounded-full invert" src="/svg/cc.svg" />

@@ -2,6 +2,10 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
+  experimental: {
+    viewTransition: true,
+    typedPages: true
+  },
   css: [
     "~/assets/css/main.css",
     "~/assets/css/tailwind.css",
@@ -21,16 +25,11 @@ export default defineNuxtConfig({
       }
     }
   },
+  
 
   vite: {
     build: {
       target: "esnext"
-    }
-  },
-
-  routeRules: {
-    '/watch/:id': {
-      ssr: false
     }
   },
 
